@@ -464,6 +464,7 @@ function useMorphNavigation() {
 function IntroVideoGate({ onComplete }) {
   const [isDone, setIsDone] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isAwaitingEntry, setIsAwaitingEntry] = useState(true);
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -482,13 +483,45 @@ function IntroVideoGate({ onComplete }) {
       return true;
     });
   };
+  const startWithSound = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = false;
+    video.volume = 1;
+    video
+      .play()
+      .then(() => {
+        setIsMuted(false);
+        setIsAwaitingEntry(false);
+      })
+      .catch(() => {
+        setIsMuted(true);
+        setIsAwaitingEntry(false);
+        video.muted = true;
+        video.play().catch(() => {});
+      });
+  };
   const toggleSound = () => {
     const video = videoRef.current;
     if (!video) return;
-    video.muted = !video.muted;
+
+    if (isAwaitingEntry) {
+      startWithSound();
+      return;
+    }
+
+    const shouldUnmute = video.muted;
+    video.muted = !shouldUnmute;
     video.volume = 1;
-    video.play().catch(() => {});
-    setIsMuted(video.muted);
+    video
+      .play()
+      .then(() => {
+        setIsMuted(video.muted);
+      })
+      .catch(() => {
+        setIsMuted(video.muted);
+      });
   };
 
   return (
@@ -497,15 +530,19 @@ function IntroVideoGate({ onComplete }) {
         ref={videoRef}
         className="introVideo"
         src={openingVideoSrc}
-        autoPlay
+        autoPlay={!isAwaitingEntry}
         muted={isMuted}
         playsInline
         preload="auto"
         onEnded={complete}
         onError={complete}
       />
-      <button type="button" className="videoSoundToggle" onClick={toggleSound}>
-        {isMuted ? "הפעל סאונד" : "כבה סאונד"}
+      <button
+        type="button"
+        className={`videoSoundToggle ${isAwaitingEntry ? "entryStart" : ""}`}
+        onClick={toggleSound}
+      >
+        {isAwaitingEntry ? "לגודיסון" : isMuted ? "הפעל סאונד" : "כבה סאונד"}
       </button>
       <button type="button" className="introSkip" onClick={complete}>
         דלג למצגת
