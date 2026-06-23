@@ -2244,6 +2244,16 @@ h1 {
     --nav-h: 74px;
   }
 
+  .videoSoundToggle.entryStart {
+    left: 50%;
+    right: auto;
+    inset-inline-start: auto;
+    width: min(320px, calc(100vw - 36px));
+    min-width: 0;
+    text-align: center;
+    transform: translateX(-50%);
+  }
+
   .topbar {
     left: 12px;
     right: 12px;
